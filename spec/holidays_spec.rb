@@ -16,7 +16,7 @@ describe Holidays::API do
       get '/hello'
       expect(last_response.status).to eq(200)
       actual = JSON.parse(last_response.body)
-      expected = {'hello' => 'world'}
+      expected = { 'hello' => 'world' }
 
       expect(actual).to eq(expected)
     end
