@@ -1,0 +1,11 @@
+AllCops:
+  TargetRubyVersion: 2.4
+
+  Exclude:
+    - 'bin/**/*'
+    - 'spec/spec_helper.rb'
+
+  DisplayCopNames: true
+
+Style/Documentation:
+  Enabled: false
