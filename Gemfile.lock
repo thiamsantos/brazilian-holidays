@@ -41,6 +41,8 @@ GEM
     rack (2.0.5)
     rack-accept (0.4.5)
       rack (>= 0.4)
+    rack-test (1.0.0)
+      rack (>= 1.0, < 3)
     rainbow (3.0.0)
     rspec (3.7.0)
       rspec-core (~> 3.7.0)
@@ -80,6 +82,7 @@ PLATFORMS
 DEPENDENCIES
   grape
   rack (~> 2.0)
+  rack-test (~> 1.0)
   rspec (~> 3.7)
   rubocop
 
