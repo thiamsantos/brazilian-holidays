@@ -4,6 +4,13 @@ development:
   pool: 5
   timeout: 5000
 
-test: &test
+test:
   adapter: sqlite3
   database: ':memory:'
+
+production:
+  adapter: postgresql
+  host: <%= ENV['DB_HOST'] %>
+  database: <%= ENV['DB_NAME'] %>
+  username: <%= ENV['DB_USER'] %>
+  password: <%= ENV['DB_PASSWORD'] %>
