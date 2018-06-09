@@ -7,8 +7,10 @@ require 'sqlite3'
 require 'active_record'
 require_relative './models/holiday'
 
-ActiveRecord::Base.configurations = YAML.load(ERB.new(IO.read('db/config.yml')).result)
-ActiveRecord::Base.establish_connection(ENV.fetch('ENV', 'development').to_sym)
+unless ActiveRecord::Base.connected?
+  ActiveRecord::Base.configurations = YAML.load(ERB.new(IO.read('db/config.yml')).result)
+  ActiveRecord::Base.establish_connection(ENV.fetch('ENV', 'development').to_sym)
+end
 
 module Holidays
   class API < Grape::API
