@@ -2,6 +2,7 @@ AllCops:
   TargetRubyVersion: 2.4
 
   Exclude:
+    - 'db/**/*'
     - 'bin/**/*'
     - 'spec/spec_helper.rb'
     - 'vendor/**/*'
