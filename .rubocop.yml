@@ -4,6 +4,7 @@ AllCops:
   Exclude:
     - 'bin/**/*'
     - 'spec/spec_helper.rb'
+    - 'vendor/**/*'
 
   DisplayCopNames: true
 
