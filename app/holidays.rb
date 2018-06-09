@@ -8,8 +8,11 @@ require 'active_record'
 require_relative './models/holiday'
 
 unless ActiveRecord::Base.connected?
-  ActiveRecord::Base.configurations = YAML.load(ERB.new(IO.read('db/config.yml')).result)
-  ActiveRecord::Base.establish_connection(ENV.fetch('ENV', 'development').to_sym)
+  configuration_file = ERB.new(IO.read('db/config.yml')).result
+  env = ENV.fetch('ENV', 'development').to_sym
+
+  ActiveRecord::Base.configurations = YAML.safe_load(configuration_file)
+  ActiveRecord::Base.establish_connection(env)
 end
 
 module Holidays
