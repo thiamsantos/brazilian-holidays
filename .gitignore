@@ -51,3 +51,6 @@ build-iPhoneSimulator/
 
 # development database
 /db/development.sqlite3
+
+# bin folder
+/bin/
