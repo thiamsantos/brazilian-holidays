@@ -16,17 +16,30 @@ unless ActiveRecord::Base.connected?
 end
 
 module Holidays
+  class NotFoundError < StandardError
+  end
+
   class Service
-    def self.all
+    def all
       Holiday
         .select(:occurs_at, :name)
         .map { |holiday| { name: holiday[:name], date: holiday[:occurs_at] } }
     end
 
-    def self.filter_by_year(year)
+    def filter_by_year(year)
       start_date = Date.new(year, 1, 1)
       end_date = Date.new(year, -1, -1)
 
+      holidays = query_by_year(start_date, end_date)
+
+      raise NotFoundError, 'No holidays found!' if holidays.empty?
+
+      holidays
+    end
+
+    private
+
+    def query_by_year(start_date, end_date)
       Holiday
         .select(:occurs_at, :name)
         .where('occurs_at >= ? and occurs_at <= ?', start_date, end_date)
@@ -41,26 +54,20 @@ module Holidays
 
     resource :holidays do
       get do
-        Service.all
+        Service.new.all
       end
 
       resource :year do
-        route_param :year_id do
+        params do
+          requires :year_param, type: Integer, desc: 'Year.'
+        end
+        route_param :year_param do
           get do
-            year = params[:year_id].to_i
-
-            if year.zero?
-              message = "`#{params[:year_id]}` is not a valid year!"
-              error!({ error: 'invalid', message: message }, 400)
+            begin
+              Service.new.filter_by_year(params[:year_param])
+            rescue NotFoundError => e
+              error!({ error: 'not_found', message: e.message }, 404)
             end
-
-            holidays = Service.filter_by_year(year)
-
-            if holidays.empty?
-              error!({ error: 'not_found', message: 'No holidays found!' }, 404)
-            end
-
-            holidays
           end
         end
       end

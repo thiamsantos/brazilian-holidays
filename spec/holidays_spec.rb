@@ -72,8 +72,7 @@ describe Holidays::API do
 
       expect(last_response.status).to eq(400)
       actual = JSON.parse(last_response.body)
-      message = '`invalid` is not a valid year!'
-      expected = { 'error' => 'invalid', 'message' => message }
+      expected = { 'error' => 'year_param is invalid' }
 
       expect(actual).to eq(expected)
     end
