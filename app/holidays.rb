@@ -19,7 +19,7 @@ module Holidays
   class NotFoundError < StandardError
   end
 
-  class HolidayQuery
+  class HolidayRepository
     def initialize(relation = Holiday.unscoped)
       @relation = relation
     end
@@ -30,32 +30,41 @@ module Holidays
     end
 
     def all_by_year(year)
-      all_by_range(Date.new(year) .. Date.new(year + 1))
+      range = Date.new(year)...Date.new(year + 1)
+      all_by_range(range)
     end
 
     def all_by_range(range)
-      all.where('occurs_at >= ? and occurs_at < ?', range.begin, range.end)
+      all.where('occurs_at >= ? and occurs_at <= ?', range.min, range.max)
+    end
+  end
+
+  class HolidaySerializer
+    def all(holidays)
+      holidays.map { |holiday| one(holiday) }
+    end
+
+    def one(holiday)
+      { name: holiday[:name], date: holiday[:occurs_at] }
     end
   end
 
   class Service
+    def initialize
+      @repository = HolidayRepository.new
+      @serializer = HolidaySerializer.new
+    end
+
     def all
-      HolidayQuery
-        .new
-        .all
-        .map { |holiday| { name: holiday[:name], date: holiday[:occurs_at] } }
+      @serializer.all(@repository.all)
     end
 
     def filter_by_year(year)
-      holidays = HolidayQuery.new
-        .all_by_year(year)
-        .map do |holiday|
-          { name: holiday[:name], date: holiday[:occurs_at] }
-        end
+      holidays = @repository.all_by_year(year)
 
       raise NotFoundError, 'No holidays found!' if holidays.empty?
 
-      holidays
+      @serializer.all(holidays)
     end
   end
 
