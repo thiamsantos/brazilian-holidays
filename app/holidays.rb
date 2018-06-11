@@ -114,7 +114,6 @@ module Holidays
   end
 
   class API < Grape::API
-    # rubocop:disable Metrics/BlockLength
     format :json
 
     resource :holidays do
@@ -165,6 +164,5 @@ module Holidays
         end
       end
     end
-    # rubocop:enable Metrics/BlockLength
   end
 end

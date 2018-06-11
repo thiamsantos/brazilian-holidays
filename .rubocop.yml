@@ -13,5 +13,4 @@ Style/Documentation:
   Enabled: false
 
 Metrics/BlockLength:
-  Exclude:
-    - 'spec/**/*'
+  Enabled: false
