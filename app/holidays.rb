@@ -18,7 +18,29 @@ module Holidays
   class Holiday < ActiveRecord::Base
   end
 
-  class NotFoundError < StandardError
+  class HolidayError < StandardError
+    attr_reader :type, :code
+    def initialize(msg="Holiday Error!", type="holiday_error", code=422)
+      @type = type
+      @code = code
+      super(msg)
+    end
+  end
+
+  class NotFoundError < HolidayError
+    def self.create
+      self.new('No holidays found!', 'not_found', 404)
+    end
+  end
+
+  class InvalidRangeError < HolidayError
+    def self.create_same_dates
+      self.new('Start and end dates are the same!', 'invalid_range', 422)
+    end
+
+    def self.create_start_is_greater
+      self.new('Start date is greater than end date!', 'invalid_range', 422)
+    end
   end
 
   class HolidayRepository
@@ -79,7 +101,7 @@ module Holidays
     def all_by_year(year)
       holidays = @repository.all_by_year(year)
 
-      raise NotFoundError, 'No holidays found!' if holidays.empty?
+      raise NotFoundError.create if holidays.empty?
 
       @serializer.all(holidays)
     end
@@ -87,7 +109,17 @@ module Holidays
     def all_by_month(year, month)
       holidays = @repository.all_by_month(year, month)
 
-      raise NotFoundError, 'No holidays found!' if holidays.empty?
+      raise NotFoundError.create if holidays.empty?
+
+      @serializer.all(holidays)
+    end
+
+    def all_by_range(range)
+      raise InvalidRangeError.create_same_dates if range.begin == range.end
+      raise InvalidRangeError.create_start_is_greater if range.begin > range.end
+      holidays = @repository.all_by_range(range)
+
+      raise NotFoundError.create if holidays.empty?
 
       @serializer.all(holidays)
     end
@@ -95,7 +127,7 @@ module Holidays
     def one_by_date(date)
       holiday = @repository.one_by_date(date)
 
-      raise NotFoundError, 'No holidays found!' if holiday.nil?
+      raise NotFoundError.create if holiday.nil?
 
       @serializer.one(holiday)
     end
@@ -127,8 +159,25 @@ module Holidays
           return Service.new.all if date.nil?
 
           Service.new.one_by_date(date)
-        rescue NotFoundError => e
-          error!({ error: 'not_found', message: e.message }, 404)
+        rescue HolidayError => e
+          error!({ error: e.type, message: e.message }, e.code)
+        end
+      end
+
+      resource :range do
+        params do
+          requires :start, type: DateParam
+          requires :end, type: DateParam
+        end
+        get do
+          begin
+            start_date = params[:start]
+            end_date = params[:end]
+
+            Service.new.all_by_range(start_date...end_date)
+          rescue HolidayError => e
+            error!({ error: e.type, message: e.message }, e.code)
+          end
         end
       end
 
@@ -140,8 +189,8 @@ module Holidays
           get do
             begin
               Service.new.all_by_year(params[:year_param])
-            rescue NotFoundError => e
-              error!({ error: 'not_found', message: e.message }, 404)
+            rescue HolidayError => e
+              error!({ error: e.type, message: e.message }, e.code)
             end
           end
 
@@ -155,8 +204,8 @@ module Holidays
                   year = params[:year_param]
                   month = params[:month_param]
                   Service.new.all_by_month(year, month)
-                rescue NotFoundError => e
-                  error!({ error: 'not_found', message: e.message }, 404)
+                rescue HolidayError => e
+                  error!({ error: e.type, message: e.message }, e.code)
                 end
               end
             end

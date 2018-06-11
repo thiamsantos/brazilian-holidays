@@ -202,4 +202,84 @@ describe Holidays::API do
       expect(actual).to eq(expected)
     end
   end
+
+  context 'GET /holidays?start={start_date}&end={end_date}' do
+    it 'should return the holidays in the range' do
+      holidays_in_range = [
+        { name: 'holiday 1', occurs_at: Date.new(2017, 4, 10) },
+        { name: 'holiday 2', occurs_at: Date.new(2017, 4, 11) },
+        { name: 'holiday 3', occurs_at: Date.new(2017, 4, 12) },
+      ]
+
+      holidays_not_range = [
+        { name: 'holiday 4', occurs_at: Date.new(2016, 4, 13) },
+        { name: 'holiday 5', occurs_at: Date.new(2017, 5, 20) }
+      ]
+
+      holidays = holidays_in_range + holidays_not_range
+
+      holidays.each do |holiday|
+        Holidays::Holiday.create(holiday)
+      end
+
+      get '/holidays/range?start=2017-04-10&end=2017-04-13'
+
+      expect(last_response.status).to eq(200)
+      actual = JSON.parse(last_response.body)
+      expected = holidays_in_range.map do |holiday|
+        {'name' => holiday[:name], 'date' => holiday[:occurs_at].to_s}
+      end
+
+      expect(actual).to eq(expected)
+    end
+
+    it 'should return 400 when the start and end are invalids' do
+      get '/holidays/range?start=201-4-1&end=2017-02-30'
+
+      expect(last_response.status).to eq(400)
+      actual = JSON.parse(last_response.body)
+      expected = {'error' => 'start is invalid, end is invalid'}
+
+      expect(actual).to eq(expected)
+    end
+
+    it 'should return 404 when no holidays are found' do
+      holidays = [
+        { name: 'holiday 1', occurs_at: Date.new(2017, 4, 10) },
+        { name: 'holiday 2', occurs_at: Date.new(2017, 4, 11) },
+        { name: 'holiday 3', occurs_at: Date.new(2017, 4, 12) },
+      ]
+      holidays.each do |holiday|
+        Holidays::Holiday.create(holiday)
+      end
+
+      get '/holidays/range?start=2017-04-27&end=2017-04-30'
+
+      expect(last_response.status).to eq(404)
+      actual = JSON.parse(last_response.body)
+      expected = { 'error' => 'not_found', 'message' => 'No holidays found!' }
+
+      expect(actual).to eq(expected)
+    end
+
+    it 'should return 422 when start is greater than end' do
+      get '/holidays/range?start=2017-04-30&end=2017-04-15'
+
+      expect(last_response.status).to eq(422)
+      actual = JSON.parse(last_response.body)
+      expected = { 'error' => 'invalid_range', 'message' => 'Start date is greater than end date!' }
+
+      expect(actual).to eq(expected)
+    end
+
+    it 'should return 422 when start and end are equals' do
+      get '/holidays/range?start=2017-04-30&end=2017-04-30'
+
+      expect(last_response.status).to eq(422)
+      actual = JSON.parse(last_response.body)
+      expected = { 'error' => 'invalid_range', 'message' => 'Start and end dates are the same!' }
+
+      expect(actual).to eq(expected)
+    end
+  end
 end
