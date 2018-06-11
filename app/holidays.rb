@@ -50,6 +50,10 @@ module Holidays
     def all_by_range(range)
       all.where('occurs_at >= ? and occurs_at <= ?', range.min, range.max)
     end
+
+    def one_by_date(date)
+      Holiday.where(occurs_at: date).first
+    end
   end
 
   class HolidaySerializer
@@ -72,7 +76,7 @@ module Holidays
       @serializer.all(@repository.all)
     end
 
-    def filter_by_year(year)
+    def all_by_year(year)
       holidays = @repository.all_by_year(year)
 
       raise NotFoundError, 'No holidays found!' if holidays.empty?
@@ -80,12 +84,32 @@ module Holidays
       @serializer.all(holidays)
     end
 
-    def filter_by_month(year, month)
+    def all_by_month(year, month)
       holidays = @repository.all_by_month(year, month)
 
       raise NotFoundError, 'No holidays found!' if holidays.empty?
 
       @serializer.all(holidays)
+    end
+
+    def one_by_date(date)
+      holiday = @repository.one_by_date(date)
+
+      raise NotFoundError, 'No holidays found!' if holiday.nil?
+
+      @serializer.one(holiday)
+    end
+  end
+
+  class DateParam
+    def self.parse(value)
+      fail 'Invalid date' if /\d{4}-\d{2}-\d{2}/.match(value).nil?
+
+      Date.parse(value)
+    end
+
+    def self.parsed?(value)
+      value.is_a?(Date)
     end
   end
 
@@ -93,8 +117,19 @@ module Holidays
     format :json
 
     resource :holidays do
+      params do
+        optional :date, type: DateParam, desc: 'Date.'
+      end
+
       get do
-        Service.new.all
+        begin
+          date = params[:date]
+          return Service.new.all if date.nil?
+
+          Service.new.one_by_date(date)
+        rescue NotFoundError => e
+          error!({ error: 'not_found', message: e.message }, 404)
+        end
       end
 
       resource :year do
@@ -104,7 +139,7 @@ module Holidays
         route_param :year_param do
           get do
             begin
-              Service.new.filter_by_year(params[:year_param])
+              Service.new.all_by_year(params[:year_param])
             rescue NotFoundError => e
               error!({ error: 'not_found', message: e.message }, 404)
             end
@@ -117,7 +152,7 @@ module Holidays
             route_param :month_param do
               get do
                 begin
-                  Service.new.filter_by_month(params[:year_param], params[:month_param])
+                  Service.new.all_by_month(params[:year_param], params[:month_param])
                 rescue NotFoundError => e
                   error!({ error: 'not_found', message: e.message }, 404)
                 end
