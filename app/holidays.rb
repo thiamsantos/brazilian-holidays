@@ -20,7 +20,7 @@ module Holidays
 
   class HolidayError < StandardError
     attr_reader :type, :code
-    def initialize(msg="Holiday Error!", type="holiday_error", code=422)
+    def initialize(msg = 'Holiday Error!', type = 'holiday_error', code = 422)
       @type = type
       @code = code
       super(msg)
@@ -29,17 +29,17 @@ module Holidays
 
   class NotFoundError < HolidayError
     def self.create
-      self.new('No holidays found!', 'not_found', 404)
+      new('No holidays found!', 'not_found', 404)
     end
   end
 
   class InvalidRangeError < HolidayError
     def self.create_same_dates
-      self.new('Start and end dates are the same!', 'invalid_range', 422)
+      new('Start and end dates are the same!', 'invalid_range', 422)
     end
 
     def self.create_start_is_greater
-      self.new('Start date is greater than end date!', 'invalid_range', 422)
+      new('Start date is greater than end date!', 'invalid_range', 422)
     end
   end
 
@@ -115,9 +115,7 @@ module Holidays
     end
 
     def all_by_range(range)
-      raise InvalidRangeError.create_same_dates if range.begin == range.end
-      raise InvalidRangeError.create_start_is_greater if range.begin > range.end
-      holidays = @repository.all_by_range(range)
+      holidays = @repository.all_by_range(validate_range(range))
 
       raise NotFoundError.create if holidays.empty?
 
@@ -130,6 +128,14 @@ module Holidays
       raise NotFoundError.create if holiday.nil?
 
       @serializer.one(holiday)
+    end
+
+    private
+
+    def validate_range(range)
+      raise InvalidRangeError.create_same_dates if range.begin == range.end
+      raise InvalidRangeError.create_start_is_greater if range.begin > range.end
+      range
     end
   end
 

@@ -208,7 +208,7 @@ describe Holidays::API do
       holidays_in_range = [
         { name: 'holiday 1', occurs_at: Date.new(2017, 4, 10) },
         { name: 'holiday 2', occurs_at: Date.new(2017, 4, 11) },
-        { name: 'holiday 3', occurs_at: Date.new(2017, 4, 12) },
+        { name: 'holiday 3', occurs_at: Date.new(2017, 4, 12) }
       ]
 
       holidays_not_range = [
@@ -227,7 +227,7 @@ describe Holidays::API do
       expect(last_response.status).to eq(200)
       actual = JSON.parse(last_response.body)
       expected = holidays_in_range.map do |holiday|
-        {'name' => holiday[:name], 'date' => holiday[:occurs_at].to_s}
+        { 'name' => holiday[:name], 'date' => holiday[:occurs_at].to_s }
       end
 
       expect(actual).to eq(expected)
@@ -238,7 +238,7 @@ describe Holidays::API do
 
       expect(last_response.status).to eq(400)
       actual = JSON.parse(last_response.body)
-      expected = {'error' => 'start is invalid, end is invalid'}
+      expected = { 'error' => 'start is invalid, end is invalid' }
 
       expect(actual).to eq(expected)
     end
@@ -247,7 +247,7 @@ describe Holidays::API do
       holidays = [
         { name: 'holiday 1', occurs_at: Date.new(2017, 4, 10) },
         { name: 'holiday 2', occurs_at: Date.new(2017, 4, 11) },
-        { name: 'holiday 3', occurs_at: Date.new(2017, 4, 12) },
+        { name: 'holiday 3', occurs_at: Date.new(2017, 4, 12) }
       ]
       holidays.each do |holiday|
         Holidays::Holiday.create(holiday)
@@ -267,7 +267,8 @@ describe Holidays::API do
 
       expect(last_response.status).to eq(422)
       actual = JSON.parse(last_response.body)
-      expected = { 'error' => 'invalid_range', 'message' => 'Start date is greater than end date!' }
+      message = 'Start date is greater than end date!'
+      expected = { 'error' => 'invalid_range', 'message' => message }
 
       expect(actual).to eq(expected)
     end
@@ -277,7 +278,8 @@ describe Holidays::API do
 
       expect(last_response.status).to eq(422)
       actual = JSON.parse(last_response.body)
-      expected = { 'error' => 'invalid_range', 'message' => 'Start and end dates are the same!' }
+      message = 'Start and end dates are the same!'
+      expected = { 'error' => 'invalid_range', 'message' => message }
 
       expect(actual).to eq(expected)
     end
