@@ -24,7 +24,7 @@ describe Holidays::API do
     it 'shoould return all holidays' do
       today = Date.today
       name = 'Holiday'
-      Holiday.create(name: name, occurs_at: today)
+      Holidays::Holiday.create(name: name, occurs_at: today)
 
       get '/holidays'
       expect(last_response.status).to eq(200)
@@ -40,8 +40,8 @@ describe Holidays::API do
       date = Date.new(2017, 4, 15)
       name = 'Holiday'
 
-      Holiday.create(name: name, occurs_at: date)
-      Holiday.create(name: 'another', occurs_at: Date.new(2009, 4, 10))
+      Holidays::Holiday.create(name: name, occurs_at: date)
+      Holidays::Holiday.create(name: 'another', occurs_at: Date.new(2009, 4, 10))
 
       get '/holidays/year/2017'
 
@@ -56,7 +56,7 @@ describe Holidays::API do
       date = Date.new(2017, 4, 15)
       name = 'Holiday'
 
-      Holiday.create(name: name, occurs_at: date)
+      Holidays::Holiday.create(name: name, occurs_at: date)
 
       get '/holidays/year/2004'
 

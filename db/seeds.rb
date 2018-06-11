@@ -1,10 +1,10 @@
 require 'roo-xls'
-require_relative '../app/models/holiday'
+require_relative '../app/holidays'
 
 path = File.join(File.dirname(__FILE__), './holidays.xls')
 document = Roo::Spreadsheet.open(path, extension: :xls)
 
-Holiday.transaction do
+Holidays::Holiday.transaction do
   document
     .sheet(document.default_sheet)
     .parse(occurs_at: 'Data', name: 'Feriado')

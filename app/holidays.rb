@@ -5,7 +5,6 @@ require 'erb'
 require 'grape'
 require 'sqlite3'
 require 'active_record'
-require_relative './models/holiday'
 
 unless ActiveRecord::Base.connected?
   configuration_file = ERB.new(IO.read('db/config.yml')).result
@@ -16,6 +15,9 @@ unless ActiveRecord::Base.connected?
 end
 
 module Holidays
+  class Holiday < ActiveRecord::Base
+  end
+
   class NotFoundError < StandardError
   end
 
