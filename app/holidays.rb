@@ -32,7 +32,18 @@ module Holidays
     end
 
     def all_by_year(year)
-      range = Date.new(year)...Date.new(year + 1)
+      start_date = Date.new(year)
+      end_date = start_date.next_year
+
+      range = start_date...end_date
+      all_by_range(range)
+    end
+
+    def all_by_month(year, month)
+      start_date = Date.new(year, month)
+      end_date = start_date.next_month
+
+      range = start_date...end_date
       all_by_range(range)
     end
 
@@ -68,6 +79,14 @@ module Holidays
 
       @serializer.all(holidays)
     end
+
+    def filter_by_month(year, month)
+      holidays = @repository.all_by_month(year, month)
+
+      raise NotFoundError, 'No holidays found!' if holidays.empty?
+
+      @serializer.all(holidays)
+    end
   end
 
   class API < Grape::API
@@ -88,6 +107,21 @@ module Holidays
               Service.new.filter_by_year(params[:year_param])
             rescue NotFoundError => e
               error!({ error: 'not_found', message: e.message }, 404)
+            end
+          end
+
+          resource :month do
+            params do
+              requires :month_param, type: Integer, desc: 'Month.', values: (1..12).to_a
+            end
+            route_param :month_param do
+              get do
+                begin
+                  Service.new.filter_by_month(params[:year_param], params[:month_param])
+                rescue NotFoundError => e
+                  error!({ error: 'not_found', message: e.message }, 404)
+                end
+              end
             end
           end
         end
