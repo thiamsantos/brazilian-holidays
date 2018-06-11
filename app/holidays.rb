@@ -19,33 +19,43 @@ module Holidays
   class NotFoundError < StandardError
   end
 
+  class HolidayQuery
+    def initialize(relation = Holiday.unscoped)
+      @relation = relation
+    end
+
+    def all
+      @relation
+        .select(:occurs_at, :name)
+    end
+
+    def all_by_year(year)
+      all_by_range(Date.new(year) .. Date.new(year + 1))
+    end
+
+    def all_by_range(range)
+      all.where('occurs_at >= ? and occurs_at < ?', range.begin, range.end)
+    end
+  end
+
   class Service
     def all
-      Holiday
-        .select(:occurs_at, :name)
+      HolidayQuery
+        .new
+        .all
         .map { |holiday| { name: holiday[:name], date: holiday[:occurs_at] } }
     end
 
     def filter_by_year(year)
-      start_date = Date.new(year, 1, 1)
-      end_date = Date.new(year, -1, -1)
-
-      holidays = query_by_year(start_date, end_date)
+      holidays = HolidayQuery.new
+        .all_by_year(year)
+        .map do |holiday|
+          { name: holiday[:name], date: holiday[:occurs_at] }
+        end
 
       raise NotFoundError, 'No holidays found!' if holidays.empty?
 
       holidays
-    end
-
-    private
-
-    def query_by_year(start_date, end_date)
-      Holiday
-        .select(:occurs_at, :name)
-        .where('occurs_at >= ? and occurs_at <= ?', start_date, end_date)
-        .map do |holiday|
-          { name: holiday[:name], date: holiday[:occurs_at] }
-        end
     end
   end
 
