@@ -40,10 +40,16 @@ describe Holidays::API do
       date = Date.new(2017, 4, 15)
       name = 'Holiday'
 
-      Holidays::Holiday.create(name: name, occurs_at: date)
-      Holidays::Holiday.create(name: 'another', occurs_at: Date.new(2009, 4, 10))
-      Holidays::Holiday.create(name: 'another 1', occurs_at: Date.new(2018))
-      Holidays::Holiday.create(name: 'another 2', occurs_at: Date.new(2016, -1, -1))
+      holidays = [
+        { name: name, occurs_at: date },
+        { name: 'another', occurs_at: Date.new(2009, 4, 10) },
+        { name: 'another 1', occurs_at: Date.new(2018) },
+        { name: 'another 2', occurs_at: Date.new(2016, -1, -1) }
+      ]
+
+      holidays.each do |holiday|
+        Holidays::Holiday.create(holiday)
+      end
 
       get '/holidays/year/2017'
 
@@ -86,7 +92,7 @@ describe Holidays::API do
       name = 'Holiday'
 
       Holidays::Holiday.create(name: name, occurs_at: date)
-      Holidays::Holiday.create(name: 'another', occurs_at: Date.new(2017, 5, 10))
+      Holidays::Holiday.create(name: 'another', occurs_at: date.next_month)
 
       get '/holidays/year/2017/month/4'
 
@@ -137,7 +143,8 @@ describe Holidays::API do
 
       expect(last_response.status).to eq(400)
       actual = JSON.parse(last_response.body)
-      expected = { 'error' => 'year_param is invalid, month_param does not have a valid value' }
+      message = 'year_param is invalid, month_param does not have a valid value'
+      expected = { 'error' => message }
 
       expect(actual).to eq(expected)
     end

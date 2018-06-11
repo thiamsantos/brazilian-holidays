@@ -103,7 +103,7 @@ module Holidays
 
   class DateParam
     def self.parse(value)
-      fail 'Invalid date' if /\d{4}-\d{2}-\d{2}/.match(value).nil?
+      raise 'Invalid date' if /\d{4}-\d{2}-\d{2}/.match(value).nil?
 
       Date.parse(value)
     end
@@ -114,11 +114,12 @@ module Holidays
   end
 
   class API < Grape::API
+    # rubocop:disable Metrics/BlockLength
     format :json
 
     resource :holidays do
       params do
-        optional :date, type: DateParam, desc: 'Date.'
+        optional :date, type: DateParam
       end
 
       get do
@@ -134,7 +135,7 @@ module Holidays
 
       resource :year do
         params do
-          requires :year_param, type: Integer, desc: 'Year.'
+          requires :year_param, type: Integer
         end
         route_param :year_param do
           get do
@@ -147,12 +148,14 @@ module Holidays
 
           resource :month do
             params do
-              requires :month_param, type: Integer, desc: 'Month.', values: (1..12).to_a
+              requires :month_param, type: Integer, values: (1..12).to_a
             end
             route_param :month_param do
               get do
                 begin
-                  Service.new.all_by_month(params[:year_param], params[:month_param])
+                  year = params[:year_param]
+                  month = params[:month_param]
+                  Service.new.all_by_month(year, month)
                 rescue NotFoundError => e
                   error!({ error: 'not_found', message: e.message }, 404)
                 end
@@ -162,5 +165,6 @@ module Holidays
         end
       end
     end
+    # rubocop:enable Metrics/BlockLength
   end
 end
