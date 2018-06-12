@@ -67,6 +67,7 @@ GEM
     parser (2.5.1.0)
       ast (~> 2.4.0)
     powerpack (0.1.1)
+    puma (3.11.4)
     rack (2.0.5)
     rack-accept (0.4.5)
       rack (>= 0.4)
@@ -141,6 +142,7 @@ PLATFORMS
 DEPENDENCIES
   activerecord (~> 5.2)
   grape
+  puma
   rack (~> 2.0)
   rack-test (~> 1.0)
   rake

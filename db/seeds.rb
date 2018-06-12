@@ -9,5 +9,5 @@ Holidays::Holiday.transaction do
     .sheet(document.default_sheet)
     .parse(occurs_at: 'Data', name: 'Feriado')
     .select { |holiday| holiday[:occurs_at].is_a?(Date) }
-    .each { |holiday| Holiday.create(holiday) }
+    .each { |holiday| Holidays::Holiday.create(holiday) }
 end

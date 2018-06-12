@@ -9,8 +9,7 @@ test:
   database: ':memory:'
 
 production:
-  adapter: postgresql
-  host: <%= ENV['DB_HOST'] %>
-  database: <%= ENV['DB_NAME'] %>
-  username: <%= ENV['DB_USER'] %>
-  password: <%= ENV['DB_PASSWORD'] %>
+  adapter: sqlite3
+  database: db/production.sqlite3
+  pool: 50
+  timeout: 5000
