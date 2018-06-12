@@ -219,5 +219,9 @@ module Holidays
         end
       end
     end
+
+    route :any, '*path' do
+      error!({ error: 'not_found', message: 'Not found!' }, 404)
+    end
   end
 end
